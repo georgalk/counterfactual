@@ -30,7 +30,7 @@ def matching_probability(optionA, optionB, probability_strings, probability_floa
     df = pd.DataFrame({
         "Πιθανότητα (p)": probability_strings,
         "Λοταρία A": [optionA] * len(probability_strings),
-        "Λοταρία B": [f"£{optionB} με πιθανότητα {p_str}" for p_str in probability_strings]
+        "Λοταρία B": [f"€{optionB} με πιθανότητα {p_str}" for p_str in probability_strings]
     })
 
     def enforce_monotonic(index, choice):
