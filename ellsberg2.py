@@ -30,6 +30,9 @@ def ellsberg_task2():
         st.session_state["ellsberg_stage2"] = 0  # 0 = First option, 1 = Second option
         st.session_state["ellsberg_responses2"] = []  # Stores user choices
 
+    if "responses" not in st.session_state or not isinstance(st.session_state["responses"], dict):
+        st.session_state["responses"] = {}
+
     scenario = scenarios[st.session_state["ellsberg_stage2"]]
 
     st.header("Ερώτηση 7")

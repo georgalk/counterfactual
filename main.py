@@ -39,6 +39,8 @@ if "version" not in st.session_state:
 if "responses" in st.session_state and isinstance(st.session_state["responses"], dict):
     st.session_state["responses"]["Version"] = st.session_state["version"]
 
+
+
 # Initialize session state for tracking progress
 if "page" not in st.session_state:
     st.session_state["page"] = 0

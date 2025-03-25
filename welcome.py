@@ -1,23 +1,24 @@
 import streamlit as st
 
 def welcome():
-    st.title("Welcome to the Experiment")
+    st.title("Καλώς ήρθες στο Πείραμα")
 
     st.markdown("""
-    Thank you for participating in this experiment!
+    Σε ευχαριστούμε που συμμετέχεις σε αυτό το πείραμα!
 
-    In this study, you will be presented with a series of choices involving coloured balls in an urn and hypothetical rewards.  
+    Σε αυτή τη μελέτη, θα σου παρουσιαστούν μια σειρά από επιλογές που περιλαμβάνουν χρωματιστές μπάλες σε ένα κουτί και υποθετικές ανταμοιβές.  
+
+    Παρακαλώ διάβασε προσεκτικά κάθε ερώτηση και κάνε τις επιλογές σου ανάλογα.
+
+    Δεν υπάρχουν σωστές ή λάθος απαντήσεις.  
+
+    Οι απαντήσεις σου είναι ανώνυμες και θα χρησιμοποιηθούν αποκλειστικά για ερευνητικούς σκοπούς.  
     
-    Please read each question carefully and make your choices accordingly.
-    
-    There are no right or wrong answers. 
+    Η ολοκλήρωση της δραστηριότητας διαρκεί περίπου **5–10 λεπτά**.
 
-    Your responses will be anonymous and used strictly for research purposes.  
-    The task should take approximately **5–10 minutes** to complete.
-
-    When you're ready to begin, click the button below.
+    Όταν είσαι έτοιμος/η να ξεκινήσεις, πάτησε το κουμπί παρακάτω.
     """)
 
-    if st.button("Start Experiment"):
+    if st.button("Ξεκίνα το Πείραμα"):
         st.session_state["page"] += 1  # Move to next page in your navigation logic
         st.rerun()
