@@ -1,7 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
 
-
 def display_lotteries(A1, A2, p, B1, B2, q):
     st.title("Ερώτηση 3")
     st.markdown(
@@ -10,7 +9,7 @@ def display_lotteries(A1, A2, p, B1, B2, q):
         f"Η Λοταρία B πληρώνει **€{B1}** με πιθανότητα **{q}** και **€{B2}** με πιθανότητα **{1 - q}**."
     )
 
-    # Create pie charts
+    # Draw pie charts for each lottery
     labels_A = [f"€{A1} με", f"€{A2} με"]
     values_A = [p, 1 - p]
     labels_B = [f"€{B1} με", f"€{B2} με"]
@@ -22,7 +21,7 @@ def display_lotteries(A1, A2, p, B1, B2, q):
         hole=0,
         text=[f"{label} {int(prob * 100)}%" for label, prob in zip(labels_A, values_A)],
         textinfo='text',
-        hoverinfo='skip'  # Optional: disables hover
+        hoverinfo='skip'
     )])
 
     fig_B = go.Figure(data=[go.Pie(
@@ -34,8 +33,8 @@ def display_lotteries(A1, A2, p, B1, B2, q):
         hoverinfo='skip'
     )])
 
-    fig_A.update_layout(showlegend=False,   font=dict(size=20) )
-    fig_B.update_layout(showlegend=False,   font=dict(size=20) )
+    fig_A.update_layout(showlegend=False, font=dict(size=20))
+    fig_B.update_layout(showlegend=False, font=dict(size=20))
 
     col1, col2 = st.columns(2)
     with col1:
@@ -46,9 +45,9 @@ def display_lotteries(A1, A2, p, B1, B2, q):
         st.markdown("### Λοταρία B")
         st.plotly_chart(fig_B, use_container_width=True)
 
-    # ✅ Initialize session state variables
-    if "responses" not in st.session_state:
-        st.session_state["responses"] = {}  # Store all collected responses
+    # ✅ Ensure session state variables
+    if "responses" not in st.session_state or not isinstance(st.session_state["responses"], list):
+        st.session_state["responses"] = []
 
     if "lottery_choice" not in st.session_state:
         st.session_state["lottery_choice"] = None
@@ -63,7 +62,7 @@ def display_lotteries(A1, A2, p, B1, B2, q):
     if "reason_submitted" not in st.session_state:
         st.session_state["reason_submitted"] = False
 
-    # ✅ Lottery selection
+    # Lottery choice
     if st.session_state["lottery_choice"] is None:
         st.write("Ποια λοταρία προτιμάς;")
         choice = st.radio("", ["Λοταρία A", "Λοταρία B"], index=None)
@@ -71,18 +70,13 @@ def display_lotteries(A1, A2, p, B1, B2, q):
         if st.button("Υποβολή", key="submit_choice"):
             if choice is not None:
                 st.session_state["lottery_choice"] = choice
-                st.session_state["responses"]["Lottery Choice"] = choice  # ✅ Save response
                 st.rerun()
             else:
                 st.warning("Χρειάζεται μια απάντηση για να συνεχίσεις.")
-    #else:
-    #    st.success(f"You selected: {st.session_state['lottery_choice']}")
 
-
-    # ✅ Multiple-choice question after selecting a lottery
+    # Multiple-choice explanation
     if st.session_state["lottery_choice"] and not st.session_state["explanation_submitted"]:
         st.write("### Τι επηρέασε την απάντηση σου? (Επέλεξε ως 2 επιλογές)")
-
         options = [
             "Πόσο πιθανό είναι να συμβεί το αποτέλεσμα.",
             "Πόσο πολύ αποτιμώ  το χρηματικό αποτέλεσμα.",
@@ -95,39 +89,47 @@ def display_lotteries(A1, A2, p, B1, B2, q):
             if st.checkbox(option, key=f"checkbox_{option}"):
                 selected_options.append(option)
 
-        # ✅ Submit multiple-choice selection
         if st.button("Υποβολή", key="submit_explanation"):
             if 1 <= len(selected_options) <= 2:
                 st.session_state["multiple_choice"] = selected_options
-                st.session_state["responses"]["Factors Considered"] = selected_options  # ✅ Save response
                 st.session_state["explanation_submitted"] = True
 
-                # ✅ If both first two options were selected, proceed
                 if all(opt in selected_options for opt in options[:2]):
-                    st.session_state["next_step_ready"] = True
+                    st.session_state["ask_reason"] = False
+                    st.session_state["reason_submitted"] = True
+                    st.session_state["responses"].append({
+                        "task": "lottery",
+                        "lottery_choice": st.session_state["lottery_choice"],
+                        "factors_considered": selected_options,
+                        "reasoning": None
+                    })
                     st.session_state["page"] += 1
                 else:
-                    st.session_state["ask_reason"] = True  # ✅ Ask for reasoning if not both first two options
+                    st.session_state["ask_reason"] = True
 
                 st.rerun()
             else:
-                st.warning("⚠️ Χρειάζεται να επιλέξεις τουλάχιστον 1 και το πολύ 2 επιλογές για να συνεχίσεις.")
+                st.warning("⚠️ Επίλεξε 1 ή 2 επιλογές για να συνεχίσεις.")
 
-    # ✅ Show free-text input only if reasoning is required and not yet submitted
-    if st.session_state.get("ask_reason", False) and not st.session_state["reason_submitted"]:
-        st.write("### Γιατί δεν επέλεξες μια απο τις δυο πρώτες επιλογές (Πόσο πιθανό είναι να συμβεί το αποτέλεσμα ή Πόσο πολύ αποτιμώ  το χρηματικό αποτέλεσμα);")
+    # Free-text reasoning if required
+    if st.session_state["ask_reason"] and not st.session_state["reason_submitted"]:
+        st.write("### Γιατί δεν επέλεξες μια από τις δύο πρώτες επιλογές (Πόσο πιθανό είναι να συμβεί το αποτέλεσμα, ή Πόσο πολύ αποτιμώ  το χρηματικό αποτέλεσμα);")
+        reason = st.text_area("Λόγος:", value=st.session_state.get("free_text_reason", ""))
 
-        free_text_input = st.text_area("Λόγος:", value=st.session_state.get("free_text_reason", ""))
-
-        # ✅ Submit free-text explanation
         if st.button("Υποβολή", key="submit_reason"):
-            if free_text_input.strip():
-                st.session_state["free_text_reason"] = free_text_input
-                st.session_state["responses"]["Reasoning"] = free_text_input  # ✅ Save response
-                st.session_state["reason_submitted"] = True  # Mark as submitted
-                st.session_state["ask_reason"] = False  # Hide reason box
+            if reason.strip():
+                st.session_state["free_text_reason"] = reason
+                st.session_state["reason_submitted"] = True
+                st.session_state["ask_reason"] = False
+
+                st.session_state["responses"].append({
+                    "task": "lottery",
+                    "lottery_choice": st.session_state["lottery_choice"],
+                    "factors_considered": st.session_state["multiple_choice"],
+                    "reasoning": reason
+                })
+
                 st.session_state["page"] += 1
                 st.rerun()
             else:
                 st.warning("⚠️ Παρακαλώ συμπλήρωσε το πεδίο για να συνεχίσεις.")
-

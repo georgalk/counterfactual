@@ -3,9 +3,9 @@ import streamlit as st
 def training2():
     """Handles the second training question and saves responses."""
 
-    # ✅ Ensure session state for responses
-    if "responses" not in st.session_state:
-        st.session_state["responses"] = {}  # Store all collected responses
+    # ✅ Ensure session state for responses (as a list)
+    if "responses" not in st.session_state or not isinstance(st.session_state["responses"], list):
+        st.session_state["responses"] = []  # Store all collected responses as a list
 
     # ✅ UI Elements
     st.header("Ερώτηση 5")
@@ -19,33 +19,35 @@ def training2():
     Με άλλα λόγια, νιώθεις λίγο μεγαλύτερη αβεβαιότητα για το “μαύρο” σε σχέση με το “κόκκινο”, και είναι αυτή η αβεβαιότητα ο λόγος που είσαι λιγότερο πρόθυμος/η να στοιχηματίσεις στο “μαύρο”;
     """)
 
-    # ✅ UI Elements
+    # ✅ UI Columns
     col1, col2 = st.columns(2)
 
     with col1:
-        # ✅ Retrieve image path from session state
         image_path = st.session_state.get("ellsberg3", "default_image.png")
         st.image(image_path, use_container_width=True)
 
     with col2:
-        # ✅ Ensure answer storage
-        if "agree_choice" not in st.session_state:
-            st.session_state["agree_choice"] = ""
+        # Ensure previous selection is tracked
+        if "agree_choice_training2" not in st.session_state:
+            st.session_state["agree_choice_training2"] = ""
 
-        # ✅ Selectbox for user's answer
         agree_choice = st.selectbox(
             "Διάλεξε μια απάντηση:",
             ["", "Ναι, Μάλλον ναι", "Όχι, Μάλλον όχι"],
-            key="agree_dropdown"
+            key="agree_dropdown_training2"
         )
 
-        # ✅ Submit button for the explanation
-        if st.button("Υποβολή"):
+        if st.button("Υποβολή", key="submit_training2"):
             if agree_choice and agree_choice != "":
-                st.session_state["agree_choice"] = agree_choice  # Store selection
-                st.session_state["responses"]["Agreement with Probability Comparison"] = agree_choice  # ✅ Save response
-                st.session_state["page"] += 1  # ✅ Move to next step
-                st.rerun()  # ✅ Refresh UI to update changes
+                st.session_state["agree_choice_training2"] = agree_choice
+
+                # ✅ Append response to the list
+                st.session_state["responses"].append({
+                    "task": "training2",
+                    "Agreement with Probability Comparison": agree_choice
+                })
+
+                st.session_state["page"] += 1
+                st.rerun()
             else:
                 st.warning("⚠️ Χρειάζεται μια απάντηση για να συνεχίσεις.")
-

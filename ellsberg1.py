@@ -1,34 +1,38 @@
 import streamlit as st
 import plotly.graph_objects as go
 import time
-#import numpy as np
 
-# Time delay for transitions
-time_sleep = 1
+time_sleep = 1  # Delay for smoother transitions
 
-# Define different scenarios with unique questions and options
+# Define scenarios
 scenarios = [
-    {"red_indices": [0, 3, 6],
-     "question": "Which one do you prefer?", "options": [
-        "Να κερδίσω €10 αν η μπάλα είναι 🔴 Κόκκινη, διαφορετικά €0",
-        "Να κερδίσω €10 αν η μπάλα είναι ⚫ Μαύρη, διαφορετικά €0"
-    ]},
-    {"red_indices": [0, 3, 6],
-     "question": "Which one do you prefer?", "options": [
-        "Να κερδίσω €10 αν η μπάλα είναι 🔴 Κόκκινη Η' 🟡 Κίτρινη, διαφορετικά €0",
-        "Να κερδίσω €10 αν η μπάλα είναι ⚫ Μαύρη Η'  🟡 Κίτρινη, διαφορετικά €0"
-    ]}
+    {
+        "red_indices": [0, 3, 6],
+        "question": "Which one do you prefer?",
+        "options": [
+            "Να κερδίσω €10 αν η μπάλα είναι 🔴 Κόκκινη, διαφορετικά €0",
+            "Να κερδίσω €10 αν η μπάλα είναι ⚫ Μαύρη, διαφορετικά €0"
+        ]
+    },
+    {
+        "red_indices": [0, 3, 6],
+        "question": "Which one do you prefer?",
+        "options": [
+            "Να κερδίσω €10 αν η μπάλα είναι 🔴 Κόκκινη Η' 🟡 Κίτρινη, διαφορετικά €0",
+            "Να κερδίσω €10 αν η μπάλα είναι ⚫ Μαύρη Η'  🟡 Κίτρινη, διαφορετικά €0"
+        ]
+    }
 ]
 
-
-
 def ellsberg_task():
-    """Encapsulates the ellsberg experiment to be called from `main.py`"""
+    """Ellsberg task logic integrated with global session_state['responses']"""
 
-    # Initialize session state for tracking progress within the task
     if "ellsberg_stage" not in st.session_state:
-        st.session_state["ellsberg_stage"] = 0  # 0 = First option, 1 = Second option
-        st.session_state["ellsberg_responses"] = []  # Stores user choices
+        st.session_state["ellsberg_stage"] = 0  # Track which question we're on
+
+    # ✅ Ensure unified response storage
+    if "responses" not in st.session_state or not isinstance(st.session_state["responses"], list):
+        st.session_state["responses"] = []
 
     scenario = scenarios[st.session_state["ellsberg_stage"]]
 
@@ -43,10 +47,8 @@ def ellsberg_task():
 
     col1, col2 = st.columns(2)
     with col1:
-        ellsberg3 = st.session_state.get("ellsberg3", "default_image.png")  # Fallback if not found
-
+        ellsberg3 = st.session_state.get("ellsberg3", "default_image.png")
         st.image(ellsberg3, use_container_width=True)
-
 
     with col2:
         st.write("Ποια επιλογή προτιμάς;")
@@ -59,24 +61,22 @@ def ellsberg_task():
 
         if st.button("Υποβολή"):
             if choice is not None:
-                st.session_state["ellsberg_responses"].append(
-                    {"scenario": st.session_state["ellsberg_stage"], "choice": choice})
-                st.session_state["responses"][f"ellsberg1_q{st.session_state['ellsberg_stage']+1}"] = choice
-
-              #  st.session_state["responses"][st.session_state["ellsberg_stage"]] = 1#choice
+                # ✅ Save response in unified structure
+                st.session_state["responses"].append({
+                    "task": "ellsberg1",
+                    "question_number": st.session_state["ellsberg_stage"] + 1,
+                    "choice": choice
+                })
 
                 with st.spinner("Loading next question..."):
                     time.sleep(time_sleep)
 
-                # Move to next stage or return to main app
+                # Move to next stage or page
                 if st.session_state["ellsberg_stage"] == 0:
-                    st.session_state["ellsberg_stage"] = 1  # Move to second option
+                    st.session_state["ellsberg_stage"] = 1
                 else:
-                    st.session_state["page"] += 1  # Move to next page in main app
+                    st.session_state["page"] += 1  # Go to next main page
 
                 st.rerun()
             else:
                 st.warning("Χρειάζεται μια απάντηση για να συνεχίσεις.")
-
-    # Show only one button at a time
-
