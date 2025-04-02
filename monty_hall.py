@@ -1,5 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+import numpy as np
 
 def draw_question_marked_rectangle(ax):
     ax.set_xlim(0, 1)
@@ -42,6 +43,7 @@ def three_doors():
     col3.pyplot(fig3)
 
     choices = ["", "0%", "50% (1/2)", "33.3% (1/3)", "100%", "Δεν μπορεί να οριστεί"]
+    percentages = {"":np.nan, "0%":0, "50% (1/2)":0.5, "33.3% (1/3)":1/3, "100%":1, "Δεν μπορεί να οριστεί":np.nan}
 
     if not st.session_state["submitted_choices"]:
         choice1 = col1.selectbox("Πόρτα 1", choices, key="dropdown1")
@@ -64,9 +66,14 @@ def three_doors():
 
             if correct:
                 st.session_state["page"] += 1
+                st.rerun()
             else:
-                st.session_state["submitted_choices"] = True
-            st.rerun()
+                if percentages[choice1] + percentages[choice2] + percentages[choice3] == 1:
+                    st.session_state["submitted_choices"] = True
+                    st.rerun()
+                else:
+                    st.write("Οι πιθανότητες πρέπει να αθροίζουν στο 100%.")
+
 
     if st.session_state["submitted_choices"]:
         st.write("### Θα συμφωνούσατε με την παρακάτω δήλωση;")
